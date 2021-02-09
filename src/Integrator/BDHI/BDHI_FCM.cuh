@@ -46,12 +46,20 @@ namespace uammd{
 	  shared_ptr<System> sys,
 	  Parameters par);
 
+      FCM(shared_ptr<ParticleData> pd,
+	  shared_ptr<System> sys,
+	  Parameters par):
+	FCM(pd, std::make_shared<ParticleGroup>(pd, sys), sys, par){}
+
       ~FCM();
 
       void setup_step(              cudaStream_t st = 0){}
       void computeMF(real3* MF,     cudaStream_t st = 0);
       void computeBdW(real3* BdW,   cudaStream_t st = 0);
       void finish_step(             cudaStream_t st = 0){}
+
+      template<typename vtype>
+      void Mdot(real3 *Mv, vtype *v, cudaStream_t st);
 
       real getHydrodynamicRadius(){
 	return hydrodynamicRadius;
@@ -95,8 +103,6 @@ namespace uammd{
       thrust::device_vector<cufftComplex> gridVelsFourier;
       thrust::device_vector<real3> gridVels;
 
-      template<typename vtype>
-      void Mdot(real3 *Mv, vtype *v, cudaStream_t st);
 
       void initializeGrid(Parameters par);
       void initializeKernel(Parameters par);
