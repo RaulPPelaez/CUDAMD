@@ -97,7 +97,10 @@
 //List here all the properties with this syntax:
 /*       ((PropertyName, propertyName, TYPE))				\      */
 //The preprocessor ensures that they are included wherever is needed
-#define ALL_PROPERTIES_LIST ((Pos, pos, real4))     \
+#ifndef EXTRA_PARTICLE_PROPERTIES 
+#define EXTRA_PARTICLE_PROPERTIES 
+#endif
+#define IMPL_ALL_PROPERTIES_LIST ((Pos, pos, real4))	\
                             ((Id, id, int))	       \
                             ((Mass, mass, real))       \
 			    ((Force, force, real4))    \
@@ -105,13 +108,14 @@
   			    ((Energy, energy, real))   \
 			    ((Vel, vel, real3))        \
   			    ((Radius, radius, real))   \
-      			    ((Charge, charge, real))
+                            ((Charge, charge, real)) EXTRA_PARTICLE_PROPERTIES
 /*
 			    ((Torque, torque, real4))  \
   			    ((AngVel, angVel, real4))  \
   			    ((Dir, dir, real4))        \
 
 */
+#define ALL_PROPERTIES_LIST  IMPL_ALL_PROPERTIES_LIST
 
 //Get the Name (first letter capital) from a tuple in the property list
 #define PROPNAME_CAPS(tuple) BOOST_PP_TUPLE_ELEM(3, 0 ,tuple)
