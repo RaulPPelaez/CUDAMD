@@ -83,6 +83,7 @@ REFERENCES:
 #include"global/defines.h"
 #include"utils/cufftComplex3.cuh"
 #include"Integrator/Integrator.cuh"
+#include <stdexcept>
 #include<thrust/device_vector.h>
 #include "utils/utils.h"
 #include"utils/cufftPrecisionAgnostic.h"
@@ -104,6 +105,7 @@ namespace uammd{
 	Box box;
 	int3 cells={-1, -1, -1}; //Default is compute the closest number of cells that is a FFT friendly number
 	bool sumThermalDrift = false; //Thermal drift has a neglegible contribution in ICM
+	bool removeTotalMomentum = true; //Set the total fluid momentum to zero in each step
       };
 
       ICM(shared_ptr<ParticleData> pd,
@@ -127,20 +129,32 @@ namespace uammd{
 	return 0.91*box.boxSize.x/(real)grid.cellDim.x;
       }
 
-      const real3* getFluidVelocities(){
-	real3* gridData = thrust::raw_pointer_cast(gridVels.data());
-	return gridData;
+      const real3* getFluidVelocities(access::location dev){
+	real3* ptr = nullptr;
+	switch(dev){
+	case access::gpu:
+	  ptr = thrust::raw_pointer_cast(gridVels.data());
+	  break;
+	case access::cpu:
+	  h_gridVels = gridVels;
+	  ptr = thrust::raw_pointer_cast(h_gridVels.data());
+	  break;
+	default:
+	  System::log<System::EXCEPTION>("Invalid device in ICM::getFluidVelocities");
+	  throw std::runtime_error("Invalid device");
+	}
+	return ptr;
       }
 
       int3 getNumberFluidCells(){
 	return grid.cellDim;
       }
-
+      
     private:
       using Kernel = IBM_kernels::Peskin::threePoint;
       real temperature, viscosity, density;
       bool sumThermalDrift;
-
+      bool removeTotalMomentum;
       Grid grid;
       Box box;
 
@@ -149,8 +163,9 @@ namespace uammd{
       thrust::device_vector<char> cufftWorkArea; //Work space for cufft
       //Grid forces/velocities in fourier/real space
       thrust::device_vector<real3> gridVels;
-      //thrust::device_vector<real3> gridVelsPrediction;
       thrust::device_vector<cufftComplex> gridVelsPredictionF;
+      //Host version of grid velocities for getFluidVelocities
+      thrust::host_vector<real3> h_gridVels;
       thrust::device_vector<real3> cellAdvection;
       curandGenerator_t curng;
       thrust::device_vector<real> random;
