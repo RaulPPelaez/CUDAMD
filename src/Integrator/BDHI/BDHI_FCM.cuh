@@ -28,8 +28,8 @@ namespace uammd{
   namespace BDHI{
     class FCM{
     public:
-      using Kernel = FCM_ns::Kernels::Gaussian;
-      //using Kernel = FCM_ns::Kernels::BarnettMagland;
+      //using Kernel = FCM_ns::Kernels::Gaussian;
+      using Kernel = FCM_ns::Kernels::BarnettMagland;
       //using Kernel = FCM_ns::Kernels::Peskin::threePoint;
       //using Kernel = FCM_ns::Kernels::Peskin::fourPoint;
       //using Kernel = FCM_ns::Kernels::GaussianFlexible::sixPoint;
@@ -38,7 +38,7 @@ namespace uammd{
       using cufftComplex3 = cufftComplex3_t<real>;
 
       struct Parameters: BDHI::Parameters{
-	int3 cells = make_int3(-1, -1, -1); //Number of Fourier nodes in each direction
+	int3 cells = make_int3(-1, -1, -1); //Number of Fourier nodes in each direction	
       };
 
       FCM(shared_ptr<ParticleData> pd,
